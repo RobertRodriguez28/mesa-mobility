@@ -66,10 +66,11 @@ export default function MesaMobilityLandingPage() {
     },
   ];
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    setSubmitted(true);
-  }
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  setSubmitted(true);
+}
+  
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#050816] text-white">
