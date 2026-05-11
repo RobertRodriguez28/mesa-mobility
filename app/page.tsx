@@ -1,37 +1,60 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { ElementType, FormEvent, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
-  CheckCircle2,
-  MapPin,
-  Video,
-  Sparkles,
-  Star,
-  Menu,
-  X,
-  ClipboardCheck,
-  FileText,
-  ShieldCheck,
   Activity,
+  AlertTriangle,
+  ArrowRight,
   BarChart3,
   Camera,
-  ScanLine,
-  MoveRight,
-  UserCheck,
+  CheckCircle2,
   CircleGauge,
+  ClipboardCheck,
+  FileText,
+  HeartPulse,
+  MapPin,
+  Menu,
+  MoveRight,
+  ScanLine,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  UserCheck,
+  Video,
+  X,
 } from "lucide-react";
 
 export default function MesaMobilityLandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
+  const [formStatus, setFormStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [activeFormType, setActiveFormType] = useState("General mobility inquiry");
 
   const bookingLink = "https://calendly.com/robert-28-qbaj/new-meeting";
   const formspreeLink = "https://formspree.io/f/mdabyalg";
 
+  // Replace these later with real Stripe payment links.
+  const stripeAssessmentLink = "#";
+  const stripeDeskWorkerGuideLink = "#";
+  const stripeHipRoutineLink = "#";
+  const stripeFoamRollGuideLink = "#";
+
+  const recommendedPath = useMemo(() => {
+    const mainGoal = quizAnswers.goal;
+    const intensity = quizAnswers.intensity;
+
+    if (mainGoal === "local") return "Ask about local assisted stretch";
+    if (mainGoal === "custom") return "Apply for custom mobility coaching";
+    if (intensity === "high") return "Book a $29 mobility assessment";
+    return "Start with a digital routine or assessment";
+  }, [quizAnswers]);
+
   const services = [
     {
-      icon: <ClipboardCheck className="h-6 w-6" />,
+      icon: ClipboardCheck,
       eyebrow: "Best first step",
       title: "Mobility Assessment Call",
       price: "$29",
@@ -42,7 +65,7 @@ export default function MesaMobilityLandingPage() {
       href: bookingLink,
     },
     {
-      icon: <Video className="h-6 w-6" />,
+      icon: Video,
       eyebrow: "Main coaching offer",
       title: "Custom Mobility Coaching",
       price: "Custom plan",
@@ -50,18 +73,18 @@ export default function MesaMobilityLandingPage() {
         "Personalized mobility, corrective exercise, activation, stretching, and functional movement coaching based on your assessment.",
       bullets: ["Weekly check-ins", "Exercise videos", "Progressions & adjustments"],
       button: "Apply for coaching",
-      href: "#contact",
+      href: "#coaching-application",
     },
     {
-      icon: <MapPin className="h-6 w-6" />,
+      icon: MapPin,
       eyebrow: "Limited Mesa spots",
       title: "In-Person Assisted Stretch",
-      price: "Starting at $70",
+      price: "From $70",
       description:
         "Premium local assisted stretch sessions for select Mesa-area clients. Mobile table available depending on location and schedule.",
       bullets: ["Mesa area", "Mobile option", "Limited availability"],
       button: "Ask about local sessions",
-      href: "#contact",
+      href: "#local-stretch",
     },
   ];
 
@@ -106,20 +129,98 @@ export default function MesaMobilityLandingPage() {
   const digitalProducts = [
     {
       title: "Desk Worker Mobility Reset",
-      price: "$19",
+      price: "$19.99",
       description: "Simple daily mobility for tight hips, rounded shoulders, and low back stiffness.",
+      href: stripeDeskWorkerGuideLink,
     },
     {
       title: "Tight Hips Starter Routine",
-      price: "$19",
+      price: "$29.99",
       description: "A beginner-friendly routine for hip flexors, glutes, hamstrings, and hip rotation.",
+      href: stripeHipRoutineLink,
     },
     {
       title: "Foam Roll + Stretch Guide",
-      price: "$9",
+      price: "$9.99",
       description: "A quick guide for when to foam roll, what to target, and how to pair it with stretching.",
+      href: stripeFoamRollGuideLink,
     },
   ];
+
+  const quizQuestions = [
+    {
+      key: "goal",
+      question: "What are you mainly looking for?",
+      options: [
+        ["custom", "A custom coaching plan"],
+        ["local", "In-person assisted stretch near Mesa"],
+        ["routine", "A simple routine I can follow"],
+        ["unsure", "I’m not sure yet"],
+      ],
+    },
+    {
+      key: "area",
+      question: "What feels most restricted?",
+      options: [
+        ["hips", "Hips / glutes / hamstrings"],
+        ["back", "Low back stiffness"],
+        ["shoulders", "Shoulders / posture"],
+        ["full-body", "Full body stiffness"],
+      ],
+    },
+    {
+      key: "intensity",
+      question: "How much is this affecting you?",
+      options: [
+        ["low", "A little annoying"],
+        ["medium", "Noticeable most days"],
+        ["high", "It’s affecting training, work, or daily life"],
+      ],
+    },
+  ];
+
+  function updateQuizAnswer(key: string, value: string) {
+    setQuizAnswers((prev) => ({ ...prev, [key]: value }));
+
+    if (quizStep < quizQuestions.length - 1) {
+      setQuizStep((prev) => prev + 1);
+    }
+  }
+
+  async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormStatus("submitting");
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(formspreeLink, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setFormStatus("success");
+        form.reset();
+      } else {
+        setFormStatus("error");
+      }
+    } catch {
+      setFormStatus("error");
+    }
+  }
+
+  function scrollToForm(formType: string) {
+    setActiveFormType(formType);
+    setFormStatus("idle");
+    setTimeout(() => {
+      document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  }
 
   function AnatomyLineArt() {
     return (
@@ -138,8 +239,6 @@ export default function MesaMobilityLandingPage() {
         <path d="M258 176 C294 202 318 232 332 272" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
         <path d="M194 302 C176 352 160 396 142 470" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
         <path d="M236 302 C258 354 276 396 294 470" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
-        <path d="M170 214 C204 230 236 230 270 214" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
-        <path d="M178 252 C206 266 232 266 260 252" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
         <circle cx="162" cy="176" r="8" fill="#e0f2fe" stroke="#0ea5e9" />
         <circle cx="258" cy="176" r="8" fill="#e0f2fe" stroke="#0ea5e9" />
         <circle cx="194" cy="302" r="8" fill="#ccfbf1" stroke="#14b8a6" />
@@ -182,10 +281,7 @@ export default function MesaMobilityLandingPage() {
                   <span>{value}</span>
                 </div>
                 <div className="h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400"
-                    style={{ width: value }}
-                  />
+                  <div className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400" style={{ width: value }} />
                 </div>
               </div>
             ))}
@@ -195,10 +291,137 @@ export default function MesaMobilityLandingPage() {
     );
   }
 
+  function CTAButton({
+    children,
+    onClick,
+    href,
+    dark = false,
+  }: {
+    children: React.ReactNode;
+    onClick?: () => void;
+    href?: string;
+    dark?: boolean;
+  }) {
+    const classes = dark
+      ? "group inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-xl hover:shadow-sky-100"
+      : "group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400 px-6 py-3 text-sm font-black text-white shadow-xl shadow-sky-100 transition hover:-translate-y-0.5 hover:scale-[1.02]";
+
+    if (href) {
+      return (
+        <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined} className={classes}>
+          {children}
+          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+        </a>
+      );
+    }
+
+    return (
+      <button onClick={onClick} className={classes}>
+        {children}
+        <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+      </button>
+    );
+  }
+
+  function SectionEyebrow({ children }: { children: React.ReactNode }) {
+    return <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">{children}</p>;
+  }
+
+  function IconCard({
+    Icon,
+    title,
+    desc,
+  }: {
+    Icon: ElementType;
+    title: string;
+    desc: string;
+  }) {
+    return (
+      <motion.div whileHover={{ y: -3 }} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-xl hover:shadow-slate-200">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-50 text-sky-600">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="font-black text-slate-950">{title}</h3>
+          <p className="mt-1 text-sm leading-6 text-slate-600">{desc}</p>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-slate-950">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.16),transparent_34%),radial-gradient(circle_at_80%_15%,rgba(20,184,166,0.14),transparent_30%),linear-gradient(180deg,#f8fafc,#eef4fa)]" />
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(rgba(15,23,42,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.035)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(circle_at_center,black,transparent_80%)]" />
+
+      {quizOpen && (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/55 px-5 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, y: 20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="w-full max-w-xl rounded-[2rem] bg-white p-6 shadow-2xl">
+            <div className="mb-6 flex items-start justify-between gap-6">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.22em] text-sky-600">Quick mobility quiz</p>
+                <h2 className="mt-2 text-3xl font-black text-slate-950">Find your best starting point.</h2>
+              </div>
+              <button onClick={() => setQuizOpen(false)} className="rounded-full border border-slate-200 p-2 transition hover:bg-slate-50">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {quizStep < quizQuestions.length ? (
+              <div>
+                <div className="mb-5 h-2 rounded-full bg-slate-100">
+                  <div className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400" style={{ width: `${((quizStep + 1) / quizQuestions.length) * 100}%` }} />
+                </div>
+
+                <h3 className="text-xl font-black text-slate-950">{quizQuestions[quizStep].question}</h3>
+
+                <div className="mt-5 grid gap-3">
+                  {quizQuestions[quizStep].options.map(([value, label]) => (
+                    <button
+                      key={value}
+                      onClick={() => updateQuizAnswer(quizQuestions[quizStep].key, value)}
+                      className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left font-bold text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-sky-100 bg-sky-50 p-6">
+                <CheckCircle2 className="h-9 w-9 text-teal-500" />
+                <h3 className="mt-4 text-2xl font-black text-slate-950">Recommended path:</h3>
+                <p className="mt-2 text-xl font-black text-sky-700">{recommendedPath}</p>
+                <p className="mt-3 leading-7 text-slate-600">
+                  This is not a diagnosis. It is just a starting recommendation based on what you selected.
+                </p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <CTAButton href={bookingLink}>Book assessment</CTAButton>
+                  <CTAButton
+                    dark
+                    onClick={() => {
+                      setQuizOpen(false);
+                      scrollToForm(`Quiz result: ${recommendedPath}`);
+                    }}
+                  >
+                    Send my details
+                  </CTAButton>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setQuizStep(0);
+                setQuizAnswers({});
+              }}
+              className="mt-5 text-sm font-bold text-slate-500 transition hover:text-sky-600"
+            >
+              Restart quiz
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/85 backdrop-blur-xl">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
@@ -212,27 +435,19 @@ export default function MesaMobilityLandingPage() {
             </div>
           </a>
 
-          <div className="hidden items-center gap-8 text-sm font-semibold text-slate-600 md:flex">
+          <div className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
             <a href="#services" className="hover:text-sky-600">Services</a>
             <a href="#assessment" className="hover:text-sky-600">Assessment</a>
+            <a href="#about" className="hover:text-sky-600">About</a>
             <a href="#results" className="hover:text-sky-600">Results</a>
             <a href="#contact" className="hover:text-sky-600">Start</a>
           </div>
 
-          <a
-            href={bookingLink}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden rounded-full bg-slate-950 px-5 py-2.5 text-sm font-black text-white transition hover:scale-105 hover:bg-sky-600 md:inline-flex"
-          >
+          <a href={bookingLink} target="_blank" rel="noreferrer" className="hidden rounded-full bg-slate-950 px-5 py-2.5 text-sm font-black text-white transition hover:scale-105 hover:bg-sky-600 md:inline-flex">
             Book assessment
           </a>
 
-          <button
-            className="rounded-xl border border-slate-200 bg-white p-2 md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
+          <button className="rounded-xl border border-slate-200 bg-white p-2 md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </nav>
@@ -240,10 +455,11 @@ export default function MesaMobilityLandingPage() {
         {mobileMenuOpen && (
           <div className="border-t border-slate-200 bg-white px-5 py-4 md:hidden">
             <div className="grid gap-4 text-sm font-semibold text-slate-600">
-              <a href="#services" onClick={() => setMobileMenuOpen(false)}>Services</a>
-              <a href="#assessment" onClick={() => setMobileMenuOpen(false)}>Assessment</a>
-              <a href="#results" onClick={() => setMobileMenuOpen(false)}>Results</a>
-              <a href="#contact" onClick={() => setMobileMenuOpen(false)}>Start</a>
+              {["services", "assessment", "about", "results", "contact"].map((item) => (
+                <a key={item} href={`#${item}`} onClick={() => setMobileMenuOpen(false)}>
+                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                </a>
+              ))}
             </div>
           </div>
         )}
@@ -268,21 +484,8 @@ export default function MesaMobilityLandingPage() {
           </p>
 
           <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-            <a
-              href={bookingLink}
-              target="_blank"
-              rel="noreferrer"
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400 px-7 py-4 font-black text-white shadow-xl shadow-sky-200 transition hover:scale-[1.03]"
-            >
-              Book a $29 assessment
-              <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-            </a>
-            <a
-              href="#assessment"
-              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-7 py-4 font-bold text-slate-950 shadow-sm transition hover:border-sky-200 hover:text-sky-700"
-            >
-              See assessment style
-            </a>
+            <CTAButton href={bookingLink}>Book a $29 assessment</CTAButton>
+            <CTAButton dark onClick={() => setQuizOpen(true)}>Take the quiz</CTAButton>
           </div>
 
           <div className="mt-8 grid max-w-2xl grid-cols-3 gap-3 text-center">
@@ -309,9 +512,7 @@ export default function MesaMobilityLandingPage() {
               <div>
                 <p className="mb-4 text-sm font-bold uppercase tracking-[0.22em] text-sky-600">Clinical-style screen</p>
                 <h2 className="text-3xl font-black text-slate-950">Built for real people with real tightness.</h2>
-                <p className="mt-4 text-slate-600">
-                  A clean system for what to release, stretch, activate, and strengthen.
-                </p>
+                <p className="mt-4 text-slate-600">A clean system for what to release, stretch, activate, and strengthen.</p>
 
                 <div className="mt-6 grid gap-3">
                   {painPoints.map((point) => (
@@ -329,7 +530,7 @@ export default function MesaMobilityLandingPage() {
 
       <section className="border-y border-slate-200 bg-white px-5 py-16">
         <div className="mx-auto max-w-5xl text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">The angle</p>
+          <SectionEyebrow>The angle</SectionEyebrow>
           <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
             This is not bodybuilding coaching. This is how to feel better in your body.
           </h2>
@@ -342,7 +543,7 @@ export default function MesaMobilityLandingPage() {
       <section id="assessment" className="mx-auto max-w-7xl px-5 py-20">
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">Assessment dashboard</p>
+            <SectionEyebrow>Assessment dashboard</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
               A cleaner way to understand your movement.
             </h2>
@@ -351,25 +552,9 @@ export default function MesaMobilityLandingPage() {
             </p>
 
             <div className="mt-8 grid gap-4">
-              {[
-                [ScanLine, "Screen", "Review posture, movement limits, tight areas, and training history."],
-                [BarChart3, "Score", "Identify which areas are holding back your mobility and performance."],
-                [Activity, "Plan", "Build a simple stretch, activation, and corrective exercise path."],
-              ].map(([Icon, title, desc]: any) => (
-                <motion.div
-                  key={title}
-                  whileHover={{ y: -3 }}
-                  className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-50 text-sky-600">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-slate-950">{title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">{desc}</p>
-                  </div>
-                </motion.div>
-              ))}
+              <IconCard Icon={ScanLine} title="Screen" desc="Review posture, movement limits, tight areas, and training history." />
+              <IconCard Icon={BarChart3} title="Score" desc="Identify which areas are holding back your mobility and performance." />
+              <IconCard Icon={Activity} title="Plan" desc="Build a simple stretch, activation, and corrective exercise path." />
             </div>
           </div>
 
@@ -380,10 +565,8 @@ export default function MesaMobilityLandingPage() {
       <section className="border-y border-slate-200 bg-slate-50 px-5 py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-teal-600">Movement diagrams</p>
-            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
-              Stretching is only one piece.
-            </h2>
+            <SectionEyebrow>Movement diagrams</SectionEyebrow>
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">Stretching is only one piece.</h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Better mobility usually comes from combining release work, mobility drills, activation, and strength.
             </p>
@@ -396,14 +579,7 @@ export default function MesaMobilityLandingPage() {
               ["Activate", "Wake up weak patterns", "03"],
               ["Strengthen", "Lock in better movement", "04"],
             ].map(([title, desc, num], index) => (
-              <motion.div
-                key={title}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-                className="relative rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm"
-              >
+              <motion.div key={title} initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.08 }} className="relative rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200">
                 <p className="text-5xl font-black text-slate-100">{num}</p>
                 <h3 className="mt-6 text-xl font-black text-slate-950">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{desc}</p>
@@ -418,7 +594,7 @@ export default function MesaMobilityLandingPage() {
 
       <section id="services" className="mx-auto max-w-7xl px-5 py-20">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">Services</p>
+          <SectionEyebrow>Services</SectionEyebrow>
           <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">Start simple. Upgrade if you need coaching.</h2>
           <p className="mt-5 text-lg leading-8 text-slate-600">
             Begin with a low-cost assessment, then choose whether you want a custom coaching plan, a digital routine, or limited local assisted stretch.
@@ -426,48 +602,91 @@ export default function MesaMobilityLandingPage() {
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-3">
-          {services.map((service, index) => (
-            <motion.article
-              key={service.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.55, delay: index * 0.08 }}
-              className="group flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-200"
-            >
-              <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
-                {service.icon}
-              </div>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-600">{service.eyebrow}</p>
-              <h3 className="mt-3 text-2xl font-black text-slate-950">{service.title}</h3>
-              <p className="mt-3 text-3xl font-black text-sky-600">{service.price}</p>
-              <p className="mt-4 leading-7 text-slate-600">{service.description}</p>
-              <div className="mt-7 grid gap-3">
-                {service.bullets.map((bullet) => (
-                  <div key={bullet} className="flex items-center gap-3 text-sm font-semibold text-slate-700">
-                    <CheckCircle2 className="h-5 w-5 text-teal-500" />
-                    {bullet}
-                  </div>
-                ))}
-              </div>
-              <a
-                href={service.href}
-                target={service.href.startsWith("http") ? "_blank" : undefined}
-                rel={service.href.startsWith("http") ? "noreferrer" : undefined}
-                className="mt-8 inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-600"
-              >
-                {service.button}
-                <ArrowRight className="h-4 w-4" />
-              </a>
-            </motion.article>
-          ))}
+          {services.map((service, index) => {
+            const Icon = service.icon;
+
+            return (
+              <motion.article key={service.title} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: index * 0.08 }} className="group flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-slate-200">
+                <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-teal-600">{service.eyebrow}</p>
+                <h3 className="mt-3 text-2xl font-black text-slate-950">{service.title}</h3>
+                <p className="mt-3 text-3xl font-black text-sky-600">{service.price}</p>
+                <p className="mt-4 leading-7 text-slate-600">{service.description}</p>
+                <div className="mt-7 grid gap-3">
+                  {service.bullets.map((bullet) => (
+                    <div key={bullet} className="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                      <CheckCircle2 className="h-5 w-5 text-teal-500" />
+                      {bullet}
+                    </div>
+                  ))}
+                </div>
+
+                {service.href.startsWith("#") ? (
+                  <button onClick={() => scrollToForm(service.title)} className="mt-8 inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-600">
+                    {service.button}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <a href={service.href} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-600">
+                    {service.button}
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                )}
+              </motion.article>
+            );
+          })}
         </div>
       </section>
 
-      <section id="for-you" className="border-y border-slate-200 bg-white px-5 py-20">
+      <section id="about" className="border-y border-slate-200 bg-white px-5 py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+          <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-teal-50 p-6 shadow-sm">
+            <div className="grid h-80 place-items-center rounded-[1.5rem] border border-dashed border-slate-300 bg-white text-center">
+              <div>
+                <Camera className="mx-auto h-10 w-10 text-slate-400" />
+                <p className="mt-4 font-black text-slate-950">Add Robert photo here</p>
+                <p className="mt-2 text-sm text-slate-500">Use a clean professional photo later</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <SectionEyebrow>About Robert</SectionEyebrow>
+            <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+              Coaching backed by years of hands-on experience.
+            </h2>
+            <div className="mt-6 space-y-4 text-lg leading-8 text-slate-600">
+              <p>
+                Hi, I’m Robert Rodriguez. I help people move better, feel better, and build more confidence in their body — whether that means improving mobility, relieving stiffness, getting stronger, losing weight, or simply feeling less restricted day to day.
+              </p>
+              <p>
+                I’ve been in the fitness and stretch industry for about six years. I started as a personal trainer in a gym, then became a Lead Stretch Trainer at StretchLab, where I had the opportunity to work with hundreds of clients across all age ranges — from kids as young as 8 to adults in their 90s.
+              </p>
+              <p>
+                Over the years, I’ve helped people with tight hips, low back stiffness, shoulder restrictions, posture issues, recovery needs, and performance goals. I’ve also had the opportunity to work with professional athletes and active clients who wanted to take their mobility and movement quality to the next level.
+              </p>
+              <p>
+                I hold certifications as a NASM Certified Personal Trainer and Corrective Exercise Specialist. Early in my career, I was also fortunate to be mentored by a licensed physical therapist, and many of the techniques I learned during that time still influence the way I coach today.
+              </p>
+            </div>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {["NASM CPT", "NASM CES", "6 years experience"].map((item) => (
+                <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center font-black text-slate-800">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="for-you" className="px-5 py-20">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">Who this is for</p>
+            <SectionEyebrow>Who this is for</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
               You don’t need to be an athlete. You just need a plan that makes sense.
             </h2>
@@ -477,7 +696,7 @@ export default function MesaMobilityLandingPage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {whoItsFor.map((item) => (
-              <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 font-medium text-slate-700">
+              <div key={item} className="rounded-2xl border border-slate-200 bg-white p-5 font-medium text-slate-700 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200">
                 <CheckCircle2 className="mb-3 h-5 w-5 text-teal-500" />
                 {item}
               </div>
@@ -486,10 +705,10 @@ export default function MesaMobilityLandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-20">
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <section className="border-y border-slate-200 bg-white px-5 py-20">
+        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-teal-600">Before / after posture visual</p>
+            <SectionEyebrow>Before / after posture visual</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
               The goal is not perfect posture. It’s better control.
             </h2>
@@ -519,10 +738,10 @@ export default function MesaMobilityLandingPage() {
         </div>
       </section>
 
-      <section id="digital" className="border-y border-slate-200 bg-slate-50 px-5 py-20">
+      <section id="digital" className="border-b border-slate-200 bg-slate-50 px-5 py-20">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.24em] text-teal-600">Low-ticket options</p>
+            <SectionEyebrow>Low-ticket options</SectionEyebrow>
             <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">Not ready for coaching yet?</h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Start with a simple routine or guide. These are lightweight options for people who want a basic starting point before booking coaching.
@@ -531,14 +750,14 @@ export default function MesaMobilityLandingPage() {
 
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {digitalProducts.map((product) => (
-              <article key={product.title} className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm">
+              <article key={product.title} className="rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200">
                 <FileText className="mb-5 h-8 w-8 text-sky-600" />
                 <h3 className="text-xl font-black text-slate-950">{product.title}</h3>
                 <p className="mt-3 text-3xl font-black text-teal-600">{product.price}</p>
                 <p className="mt-3 leading-7 text-slate-600">{product.description}</p>
-                <button className="mt-6 w-full rounded-full border border-slate-200 bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-600">
-                  Coming soon
-                </button>
+                <a href={product.href} className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-600">
+                  {product.href === "#" ? "Stripe link coming soon" : "Buy now"}
+                </a>
               </article>
             ))}
           </div>
@@ -547,7 +766,7 @@ export default function MesaMobilityLandingPage() {
 
       <section id="results" className="mx-auto max-w-7xl px-5 py-20">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">Client-style proof</p>
+          <SectionEyebrow>Client-style proof</SectionEyebrow>
           <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">What clients should feel.</h2>
           <p className="mt-5 text-lg leading-8 text-slate-600">
             Better movement, less stiffness, more confidence, and a routine that finally makes sense.
@@ -555,8 +774,8 @@ export default function MesaMobilityLandingPage() {
         </div>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-3">
-          {testimonials.map((testimonial, index) => (
-            <article key={testimonial.name} className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm">
+          {testimonials.map((testimonial) => (
+            <article key={testimonial.name} className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200">
               <div className="mb-6 flex items-center gap-4">
                 <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-sky-100 to-teal-100 text-sky-700">
                   <UserCheck className="h-6 w-6" />
@@ -579,36 +798,52 @@ export default function MesaMobilityLandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 pb-20">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/70 md:p-10">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">Coached by Robert</p>
-              <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
-                Functional mobility without the fitness influencer act.
-              </h2>
-            </div>
-            <div className="space-y-4 leading-8 text-slate-600">
-              <p>
-                This is built for real people who want to move better, feel less stiff, and understand what their body actually needs. The focus is mobility, activation, corrective exercise, stretching, foam rolling, and practical movement coaching.
-              </p>
-              <p className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-teal-500" />
-                Not medical care. If you have pain, injury, numbness, or medical concerns, consult a licensed healthcare professional.
-              </p>
+      <section id="disclaimer" className="border-y border-slate-200 bg-white px-5 py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-8 md:p-10">
+            <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+              <div>
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white text-amber-600 shadow-sm">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                <h2 className="mt-5 text-3xl font-black text-slate-950">What this is — and what it is not.</h2>
+                <p className="mt-4 leading-7 text-slate-700">
+                  Mesa Mobility is movement coaching, stretching, mobility, and corrective exercise support. It is not medical care.
+                </p>
+              </div>
+
+              <div className="grid gap-4">
+                {[
+                  "I do not diagnose injuries, medical conditions, arthritis, disc issues, nerve symptoms, or chronic pain conditions.",
+                  "Mobility, stretching, and corrective exercise may help improve movement quality and reduce stiffness, but they are not a guaranteed cure.",
+                  "If you have sharp pain, numbness, tingling, swelling, recent trauma, unexplained symptoms, or a diagnosed condition, consult a licensed healthcare professional first.",
+                  "If something feels outside my scope, I will recommend you speak with a physician, physical therapist, chiropractor, or other qualified provider.",
+                ].map((item) => (
+                  <div key={item} className="flex gap-3 rounded-2xl bg-white p-4 text-sm font-semibold leading-6 text-slate-700 shadow-sm">
+                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="contact" className="mx-auto max-w-5xl px-5 pb-24">
+      <section id="contact" className="mx-auto max-w-5xl px-5 py-24">
         <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-200">
           <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
             <div className="bg-gradient-to-br from-sky-50 via-white to-teal-50 p-8 md:p-10">
-              <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">Start here</p>
-              <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950">Tell me what feels tight.</h2>
+              <SectionEyebrow>Start here</SectionEyebrow>
+              <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
+                {activeFormType === "Custom Mobility Coaching" ? "Apply for custom coaching." : activeFormType === "In-Person Assisted Stretch" ? "Ask about local assisted stretch." : "Tell me what feels tight."}
+              </h2>
               <p className="mt-5 leading-7 text-slate-600">
-                Fill this out and I’ll help point you toward the best starting option: assessment, custom coaching, digital routine, or limited Mesa-area assisted stretch.
+                {activeFormType === "Custom Mobility Coaching"
+                  ? "This form is for people ready to explore ongoing coaching. Tell me your goals, what feels restricted, and what type of support you want."
+                  : activeFormType === "In-Person Assisted Stretch"
+                    ? "This form is for local Mesa-area assisted stretch inquiries. Share your location, availability, and what areas feel tight."
+                    : "Fill this out and I’ll help point you toward the best starting option: assessment, custom coaching, digital routine, or limited Mesa-area assisted stretch."}
               </p>
               <div className="mt-8 grid gap-3 text-sm font-semibold text-slate-700">
                 <p className="flex gap-3"><CheckCircle2 className="h-5 w-5 text-teal-500" />No gym required for online coaching</p>
@@ -618,32 +853,56 @@ export default function MesaMobilityLandingPage() {
             </div>
 
             <div className="p-8 md:p-10">
-              <form action={formspreeLink} method="POST" className="grid gap-4">
-                <input type="hidden" name="_subject" value="New Mesa Mobility Lead" />
+              {formStatus === "success" ? (
+                <div className="rounded-3xl border border-teal-200 bg-teal-50 p-7">
+                  <HeartPulse className="h-9 w-9 text-teal-500" />
+                  <h3 className="mt-4 text-2xl font-black text-slate-950">Request received.</h3>
+                  <p className="mt-3 leading-7 text-slate-600">
+                    Thanks — your form went through. I’ll review your details and follow up with the best next step.
+                  </p>
+                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                    <CTAButton href={bookingLink}>Book assessment now</CTAButton>
+                    <CTAButton dark onClick={() => setFormStatus("idle")}>Send another form</CTAButton>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleFormSubmit} className="grid gap-4">
+                  <input type="hidden" name="_subject" value="New Mesa Mobility Lead" />
+                  <input type="hidden" name="inquiry_type" value={activeFormType} />
+                  <input type="hidden" name="quiz_goal" value={quizAnswers.goal || ""} />
+                  <input type="hidden" name="quiz_area" value={quizAnswers.area || ""} />
+                  <input type="hidden" name="quiz_intensity" value={quizAnswers.intensity || ""} />
 
-                <input name="name" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white" placeholder="Name" required />
+                  <input name="name" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white" placeholder="Name" required />
 
-                <input name="email" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white" placeholder="Email" type="email" required />
+                  <input name="email" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white" placeholder="Email" type="email" required />
 
-                <select name="interest" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition focus:border-sky-400 focus:bg-white" required defaultValue="">
-                  <option value="" disabled>What are you interested in?</option>
-                  <option value="$29 Mobility Assessment">$29 Mobility Assessment</option>
-                  <option value="Custom mobility coaching">Custom mobility coaching</option>
-                  <option value="Digital stretch/mobility routine">Digital stretch/mobility routine</option>
-                  <option value="Mobile assisted stretch near Mesa">Mobile assisted stretch near Mesa</option>
-                  <option value="Not sure yet">Not sure yet</option>
-                </select>
+                  <select name="interest" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition focus:border-sky-400 focus:bg-white" required defaultValue={activeFormType}>
+                    <option value="General mobility inquiry">General mobility inquiry</option>
+                    <option value="Mobility Assessment Call">$29 Mobility Assessment</option>
+                    <option value="Custom Mobility Coaching">Custom mobility coaching</option>
+                    <option value="Digital routine">Digital stretch/mobility routine</option>
+                    <option value="In-Person Assisted Stretch">Mobile assisted stretch near Mesa</option>
+                    <option value="Not sure yet">Not sure yet</option>
+                  </select>
 
-                <textarea name="message" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white" placeholder="What feels tight? What are your goals? Any injuries or limitations I should know about?" required />
+                  <textarea name="message" className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white" placeholder="What feels tight? What are your goals? Any injuries, limitations, or important context I should know about?" required />
 
-                <button className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400 px-7 py-4 font-black text-white shadow-xl shadow-sky-100 transition hover:scale-[1.02]">
-                  Request recommendation
-                  <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
-                </button>
-              </form>
+                  <button disabled={formStatus === "submitting"} className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400 px-7 py-4 font-black text-white shadow-xl shadow-sky-100 transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70">
+                    {formStatus === "submitting" ? "Sending..." : "Request recommendation"}
+                    <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
+                  </button>
+
+                  {formStatus === "error" && (
+                    <p className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+                      Something went wrong. Try again, or use the assessment booking link.
+                    </p>
+                  )}
+                </form>
+              )}
 
               <p className="mt-4 text-xs leading-5 text-slate-500">
-                By submitting this form, you are requesting a follow-up about Mesa Mobility services.
+                By submitting this form, you are requesting a follow-up about Mesa Mobility services. This does not create a medical provider relationship.
               </p>
             </div>
           </div>
