@@ -1,5 +1,6 @@
 "use client";
-
+import Header from"../components/Header"
+import Footer from "../components/Footer";
 import React, { ElementType, FormEvent, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -423,47 +424,11 @@ export default function MesaMobilityLandingPage() {
         </div>
       )}
 
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/85 backdrop-blur-xl">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-          <a href="#top" className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-sky-500 to-teal-400 text-white shadow-lg shadow-sky-200">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-black tracking-tight text-slate-950">Mesa Mobility</p>
-              <p className="text-xs text-slate-500">Assessment • Recovery • Movement</p>
-            </div>
-          </a>
-
-          <div className="hidden items-center gap-7 text-sm font-semibold text-slate-600 md:flex">
-            <a href="#services" className="hover:text-sky-600">Services</a>
-            <a href="#assessment" className="hover:text-sky-600">Assessment</a>
-            <a href="#about" className="hover:text-sky-600">About</a>
-            <a href="#results" className="hover:text-sky-600">Results</a>
-            <a href="#contact" className="hover:text-sky-600">Start</a>
-          </div>
-
-          <a href={bookingLink} target="_blank" rel="noreferrer" className="hidden rounded-full bg-slate-950 px-5 py-2.5 text-sm font-black text-white transition hover:scale-105 hover:bg-sky-600 md:inline-flex">
-            Book assessment
-          </a>
-
-          <button className="rounded-xl border border-slate-200 bg-white p-2 md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle menu">
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
-        </nav>
-
-        {mobileMenuOpen && (
-          <div className="border-t border-slate-200 bg-white px-5 py-4 md:hidden">
-            <div className="grid gap-4 text-sm font-semibold text-slate-600">
-              {["services", "assessment", "about", "results", "contact"].map((item) => (
-                <a key={item} href={`#${item}`} onClick={() => setMobileMenuOpen(false)}>
-                  {item.charAt(0).toUpperCase() + item.slice(1)}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </header>
+      <Header
+  mobileMenuOpen={mobileMenuOpen}
+  setMobileMenuOpen={setMobileMenuOpen}
+  bookingLink={bookingLink}
+/>
 
       <section id="top" className="mx-auto grid max-w-7xl items-center gap-12 px-5 pb-20 pt-16 md:grid-cols-[1.03fr_0.97fr] md:pt-24">
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
@@ -908,11 +873,11 @@ export default function MesaMobilityLandingPage() {
           </div>
         </div>
       </section>
-
-      <footer className="border-t border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500">
+<Footer />
+      {/* <footer className="border-t border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500">
         <p>© 2026 Mesa Mobility. Online mobility coaching and limited mobile assisted stretch near Mesa, Arizona.</p>
         <p className="mt-2">Not medical care. For pain, injury, or medical concerns, consult a licensed healthcare professional.</p>
-      </footer>
+      </footer> */}
     </main>
   );
 }
