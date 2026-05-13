@@ -2,7 +2,7 @@
 import Header from"../components/Header";
 import AboutSection from "../components/AboutSection";
 import Footer from "../components/Footer";
-import DisclaimerSection from "../components/ DisclaimerSection";
+import DisclaimerSection from "@/components/ DisclaimerSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import ServicesSection from "../components/ServicesSection";
 import ContactSection from "@/components/ContactSection";
@@ -17,25 +17,11 @@ import React, { ElementType, FormEvent, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
-  AlertTriangle,
-  ArrowRight,
   BarChart3,
-  Camera,
   CheckCircle2,
-  CircleGauge,
-  ClipboardCheck,
   FileText,
-  HeartPulse,
-  MapPin,
-  Menu,
   MoveRight,
   ScanLine,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  UserCheck,
-  Video,
-  X,
 } from "lucide-react";
 
 export default function MesaMobilityLandingPage() {
@@ -64,42 +50,6 @@ export default function MesaMobilityLandingPage() {
     if (intensity === "high") return "Book a $29 mobility assessment";
     return "Start with a digital routine or assessment";
   }, [quizAnswers]);
-
-  const services = [
-    {
-      icon: ClipboardCheck,
-      eyebrow: "Best first step",
-      title: "Mobility Assessment Call",
-      price: "$29",
-      description:
-        "A focused Zoom assessment where we review tight areas, posture, movement patterns, training history, goals, and what type of plan makes sense for you.",
-      bullets: ["30–45 min Zoom call", "Movement strategy", "Credited toward coaching"],
-      button: "Book assessment",
-      href: bookingLink,
-    },
-    {
-      icon: Video,
-      eyebrow: "Main coaching offer",
-      title: "Custom Mobility Coaching",
-      price: "Custom plan",
-      description:
-        "Personalized mobility, corrective exercise, activation, stretching, and functional movement coaching based on your assessment.",
-      bullets: ["Weekly check-ins", "Exercise videos", "Progressions & adjustments"],
-      button: "Apply for coaching",
-      href: "#coaching-application",
-    },
-    {
-      icon: MapPin,
-      eyebrow: "Limited Mesa spots",
-      title: "In-Person Assisted Stretch",
-      price: "From $70",
-      description:
-        "Premium local assisted stretch sessions for select Mesa-area clients. Mobile table available depending on location and schedule.",
-      bullets: ["Mesa area", "Mobile option", "Limited availability"],
-      button: "Ask about local sessions",
-      href: "#local-stretch",
-    },
-  ];
 
   
 
@@ -146,111 +96,7 @@ export default function MesaMobilityLandingPage() {
     }, 50);
   }
 
-  // function AnatomyLineArt() {
-  //   return (
-  //     <svg viewBox="0 0 420 520" className="h-full w-full">
-  //       <defs>
-  //         <linearGradient id="bodyLine" x1="0" x2="1">
-  //           <stop offset="0%" stopColor="#0ea5e9" />
-  //           <stop offset="100%" stopColor="#14b8a6" />
-  //         </linearGradient>
-  //       </defs>
-  //       <circle cx="210" cy="70" r="34" fill="none" stroke="url(#bodyLine)" strokeWidth="4" />
-  //       <path d="M210 104 C208 138 202 168 190 200 C178 232 178 268 194 302" fill="none" stroke="url(#bodyLine)" strokeWidth="4" strokeLinecap="round" />
-  //       <path d="M210 104 C214 140 224 166 240 198 C256 232 256 266 236 302" fill="none" stroke="url(#bodyLine)" strokeWidth="4" strokeLinecap="round" />
-  //       <path d="M166 145 C198 126 228 126 260 145" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
-  //       <path d="M162 176 C128 202 106 232 90 272" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
-  //       <path d="M258 176 C294 202 318 232 332 272" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
-  //       <path d="M194 302 C176 352 160 396 142 470" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
-  //       <path d="M236 302 C258 354 276 396 294 470" fill="none" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
-  //       <circle cx="162" cy="176" r="8" fill="#e0f2fe" stroke="#0ea5e9" />
-  //       <circle cx="258" cy="176" r="8" fill="#e0f2fe" stroke="#0ea5e9" />
-  //       <circle cx="194" cy="302" r="8" fill="#ccfbf1" stroke="#14b8a6" />
-  //       <circle cx="236" cy="302" r="8" fill="#ccfbf1" stroke="#14b8a6" />
-  //     </svg>
-  //   );
-  // }
-
-  // function MobilityScore() {
-  //   return (
-  //     <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70">
-  //       <div className="mb-5 flex items-center justify-between">
-  //         <div>
-  //           <p className="text-sm font-bold uppercase tracking-[0.22em] text-sky-600">Mobility score</p>
-  //           <h3 className="mt-2 text-2xl font-black text-slate-950">Assessment snapshot</h3>
-  //         </div>
-  //         <CircleGauge className="h-8 w-8 text-sky-500" />
-  //       </div>
-
-  //       <div className="grid gap-5 sm:grid-cols-[150px_1fr] sm:items-center">
-  //         <div className="relative grid h-36 w-36 place-items-center rounded-full bg-[conic-gradient(#0ea5e9_0deg,#14b8a6_248deg,#e2e8f0_248deg,#e2e8f0_360deg)]">
-  //           <div className="grid h-28 w-28 place-items-center rounded-full bg-white">
-  //             <div className="text-center">
-  //               <p className="text-4xl font-black text-slate-950">69</p>
-  //               <p className="text-xs font-bold text-slate-500">baseline</p>
-  //             </div>
-  //           </div>
-  //         </div>
-
-  //         <div className="grid gap-4">
-  //           {[
-  //             ["Hip mobility", "72%"],
-  //             ["Shoulder position", "64%"],
-  //             ["Core control", "68%"],
-  //             ["Glute activation", "58%"],
-  //           ].map(([label, value]) => (
-  //             <div key={label}>
-  //               <div className="mb-1 flex justify-between text-sm font-bold text-slate-700">
-  //                 <span>{label}</span>
-  //                 <span>{value}</span>
-  //               </div>
-  //               <div className="h-2 rounded-full bg-slate-100">
-  //                 <div className="h-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400" style={{ width: value }} />
-  //               </div>
-  //             </div>
-  //           ))}
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-  // function CTAButton({
-  //   children,
-  //   onClick,
-  //   href,
-  //   dark = false,
-  // }: {
-  //   children: React.ReactNode;
-  //   onClick?: () => void;
-  //   href?: string;
-  //   dark?: boolean;
-  // }) {
-  //   const classes = dark
-  //     ? "group inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-sky-600 hover:shadow-xl hover:shadow-sky-100"
-  //     : "group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-sky-500 to-teal-400 px-6 py-3 text-sm font-black text-white shadow-xl shadow-sky-100 transition hover:-translate-y-0.5 hover:scale-[1.02]";
-
-  //   if (href) {
-  //     return (
-  //       <a href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noreferrer" : undefined} className={classes}>
-  //         {children}
-  //         <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-  //       </a>
-  //     );
-  //   }
-
-  //   return (
-  //     <button onClick={onClick} className={classes}>
-  //       {children}
-  //       <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-  //     </button>
-  //   );
-  // }
-
-  // function SectionEyebrow({ children }: { children: React.ReactNode }) {
-  //   return <p className="text-sm font-bold uppercase tracking-[0.24em] text-sky-600">{children}</p>;
-  // }
-
+  
   function IconCard({
     Icon,
     title,
