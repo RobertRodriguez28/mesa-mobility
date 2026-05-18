@@ -20,6 +20,22 @@ export default function ContactSection({
   handleFormSubmit,
   setFormStatus,
 }: ContactSectionProps) {
+  const isCoaching = activeFormType === "Custom Mobility Coaching";
+  const isLocalStretch = activeFormType === "In-Person Assisted Stretch";
+  const shouldLockInterest = isCoaching || isLocalStretch;
+
+  const heading = isCoaching
+    ? "Apply for custom coaching."
+    : isLocalStretch
+      ? "Ask about local assisted stretch."
+      : "Tell me what feels tight.";
+
+  const description = isCoaching
+    ? "This form is for people ready to explore ongoing coaching. Tell me your goals, what feels restricted, and what type of support you want."
+    : isLocalStretch
+      ? "This form is for local Mesa-area assisted stretch inquiries. Share your location, availability, and what areas feel tight."
+      : "Fill this out and I’ll help point you toward the best starting option: assessment, custom coaching, digital routine, or limited Mesa-area assisted stretch.";
+
   return (
     <section id="contact" className="mx-auto max-w-5xl px-5 py-24">
       <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl shadow-slate-200">
@@ -30,20 +46,16 @@ export default function ContactSection({
             </p>
 
             <h2 className="mt-4 text-4xl font-black tracking-tight text-slate-950">
-              {activeFormType === "Custom Mobility Coaching"
-                ? "Apply for custom coaching."
-                : activeFormType === "In-Person Assisted Stretch"
-                  ? "Ask about local assisted stretch."
-                  : "Tell me what feels tight."}
+              {heading}
             </h2>
 
-            <p className="mt-5 leading-7 text-slate-600">
-              {activeFormType === "Custom Mobility Coaching"
-                ? "This form is for people ready to explore ongoing coaching. Tell me your goals, what feels restricted, and what type of support you want."
-                : activeFormType === "In-Person Assisted Stretch"
-                  ? "This form is for local Mesa-area assisted stretch inquiries. Share your location, availability, and what areas feel tight."
-                  : "Fill this out and I’ll help point you toward the best starting option: assessment, custom coaching, digital routine, or limited Mesa-area assisted stretch."}
-            </p>
+            <p className="mt-5 leading-7 text-slate-600">{description}</p>
+
+            {shouldLockInterest && (
+              <div className="mt-6 inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-sky-700 shadow-sm ring-1 ring-sky-100">
+                Selected: {activeFormType}
+              </div>
+            )}
 
             <div className="mt-8 grid gap-3 text-sm font-semibold text-slate-700">
               <p className="flex gap-3">
@@ -103,11 +115,38 @@ export default function ContactSection({
                 <input type="hidden" name="inquiry_type" value={activeFormType} />
                 <input type="hidden" name="quiz_goal" value={quizAnswers.goal || ""} />
                 <input type="hidden" name="quiz_area" value={quizAnswers.area || ""} />
-                <input
-                  type="hidden"
-                  name="quiz_intensity"
-                  value={quizAnswers.intensity || ""}
-                />
+                <input type="hidden" name="quiz_duration" value={quizAnswers.duration || ""} />
+                <input type="hidden" name="quiz_intensity" value={quizAnswers.intensity || ""} />
+                <input type="hidden" name="quiz_equipment" value={quizAnswers.equipment || ""} />
+                <input type="hidden" name="quiz_pain" value={quizAnswers.pain || ""} />
+
+                {shouldLockInterest ? (
+                  <input type="hidden" name="interest" value={activeFormType} />
+                ) : (
+                  <select
+                    name="interest"
+                    className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition focus:border-sky-400 focus:bg-white"
+                    required
+                    defaultValue="General mobility inquiry"
+                  >
+                    <option value="General mobility inquiry">
+                      General mobility inquiry
+                    </option>
+                    <option value="Mobility Assessment Call">
+                      $29 Mobility Assessment
+                    </option>
+                    <option value="Custom Mobility Coaching">
+                      Custom mobility coaching
+                    </option>
+                    <option value="Digital routine">
+                      Digital stretch/mobility routine
+                    </option>
+                    <option value="In-Person Assisted Stretch">
+                      Mobile assisted stretch near Mesa
+                    </option>
+                    <option value="Not sure yet">Not sure yet</option>
+                  </select>
+                )}
 
                 <input
                   name="name"
@@ -124,34 +163,16 @@ export default function ContactSection({
                   required
                 />
 
-                <select
-                  name="interest"
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition focus:border-sky-400 focus:bg-white"
-                  required
-                  defaultValue={activeFormType}
-                >
-                  <option value="General mobility inquiry">
-                    General mobility inquiry
-                  </option>
-                  <option value="Mobility Assessment Call">
-                    $29 Mobility Assessment
-                  </option>
-                  <option value="Custom Mobility Coaching">
-                    Custom mobility coaching
-                  </option>
-                  <option value="Digital routine">
-                    Digital stretch/mobility routine
-                  </option>
-                  <option value="In-Person Assisted Stretch">
-                    Mobile assisted stretch near Mesa
-                  </option>
-                  <option value="Not sure yet">Not sure yet</option>
-                </select>
-
                 <textarea
                   name="message"
                   className="min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:bg-white"
-                  placeholder="What feels tight? What are your goals? Any injuries, limitations, or important context I should know about?"
+                  placeholder={
+                    isCoaching
+                      ? "What are your goals? What feels restricted? What kind of coaching support are you looking for?"
+                      : isLocalStretch
+                        ? "What areas feel tight? Where are you located near Mesa? What days/times usually work?"
+                        : "What feels tight? What are your goals? Any injuries, limitations, or important context I should know about?"
+                  }
                   required
                 />
 
@@ -161,7 +182,11 @@ export default function ContactSection({
                 >
                   {formStatus === "submitting"
                     ? "Sending..."
-                    : "Request recommendation"}
+                    : isCoaching
+                      ? "Submit coaching application"
+                      : isLocalStretch
+                        ? "Submit local stretch inquiry"
+                        : "Request recommendation"}
                   <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" />
                 </button>
 

@@ -3,7 +3,7 @@ export default function Footer() {
     <footer className="border-t border-slate-200 bg-white px-5 py-10 text-center text-sm text-slate-500">
       <div className="mx-auto max-w-5xl">
         <p className="font-semibold text-slate-700">
-          Mesa Mobility
+          Modern Kinetics
         </p>
 
         <p className="mt-2">
@@ -45,7 +45,7 @@ export default function Footer() {
 
         <div className="mt-6 border-t border-slate-200 pt-6 text-xs leading-6 text-slate-400">
           <p>
-            Mesa Mobility provides educational mobility coaching, stretching,
+            Modern Kinetics provides educational mobility coaching, stretching,
             and movement guidance only.
           </p>
 
@@ -56,7 +56,7 @@ export default function Footer() {
           </p>
 
           <p className="mt-4">
-            © 2026 Mesa Mobility. All rights reserved.
+            © 2026 Modern Kinetics. All rights reserved.
           </p>
         </div>
       </div>

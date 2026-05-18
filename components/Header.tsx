@@ -1,6 +1,7 @@
 "use client";
-
-import { Menu, X, Sparkles } from "lucide-react";
+import Image from "next/image";
+import logo from "../images/logo.png";
+import { Menu, X } from "lucide-react";
 
 interface HeaderProps {
   mobileMenuOpen: boolean;
@@ -17,17 +18,22 @@ export default function Header({
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/85 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
         <a href="#top" className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-sky-500 to-teal-400 text-white shadow-lg shadow-sky-200">
-            <Sparkles className="h-5 w-5" />
-          </div>
+          <div className="relative h-12 w-12 overflow-hidden rounded-full shadow-lg ring-2 ring-sky-400/30">
+  <Image
+    src={logo}
+    alt="Modern Kinetics Logo"
+    fill
+    className="object-cover"
+  />
+</div>
 
           <div>
             <p className="text-lg font-black tracking-tight text-slate-950">
-              Mesa Mobility
+              Modern Kinetics
             </p>
 
             <p className="text-xs text-slate-500">
-              Assessment • Recovery • Movement
+             Mobility • Recovery • Performance
             </p>
           </div>
         </a>
